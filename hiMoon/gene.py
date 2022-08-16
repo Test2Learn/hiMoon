@@ -50,13 +50,13 @@ class AbstractGene:
         except (KeyError, IndexError):
             self.reference = "REF"
         self.translation_table = self.translation_table[self.translation_table["ReferenceSequence"] != "."]
-        self.accession = self.translation_table.iloc[-1, 3]
+        self.accession = self.translation_table["ReferenceSequence"][0]
         self.chromosome = self.config.CHROMOSOME_ACCESSIONS[self.accession]
         self.translation_table["ID"] = self.translation_table.apply(lambda x: f"c{self.chromosome}_{x['Variant Start']}_{self.get_type(x['Type'])}", axis = 1)
         self.translation_table["EXCLUDE"] = 0
-        self.gene = self.translation_table.iloc[-1, 1]
-        self.max = self.translation_table.iloc[:,5].dropna().max() + int(self.config.VARIANT_QUERY_PARAMETERS["5p_offset"])
-        self.min = self.translation_table.iloc[:,4].dropna().min() - int(self.config.VARIANT_QUERY_PARAMETERS["3p_offset"])
+        self.gene = self.translation_table["Gene"][0]
+        self.max = self.translation_table["Variant Stop"].dropna().max() + int(self.config.VARIANT_QUERY_PARAMETERS["5p_offset"])
+        self.min = self.translation_table["Variant Start"].dropna().min() - int(self.config.VARIANT_QUERY_PARAMETERS["3p_offset"])
         if vcf:
             self.variants = vcf.get_range(self.chromosome, self.min, self.max)
         else:
