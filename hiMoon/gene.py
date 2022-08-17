@@ -50,13 +50,13 @@ class AbstractGene:
         except (KeyError, IndexError):
             self.reference = "REF"
         self.translation_table = self.translation_table[self.translation_table["ReferenceSequence"] != "."]
-        self.accession = self.translation_table["ReferenceSequence"][0]
+        self.accession = self.translation_table.iloc[-1, 3]
         self.chromosome = self.config.CHROMOSOME_ACCESSIONS[self.accession]
         self.translation_table["ID"] = self.translation_table.apply(lambda x: f"c{self.chromosome}_{x['Variant Start']}_{self.get_type(x['Type'])}", axis = 1)
         self.translation_table["EXCLUDE"] = 0
-        self.gene = self.translation_table["Gene"][0]
-        self.max = self.translation_table["Variant Stop"].dropna().max() + int(self.config.VARIANT_QUERY_PARAMETERS["5p_offset"])
-        self.min = self.translation_table["Variant Start"].dropna().min() - int(self.config.VARIANT_QUERY_PARAMETERS["3p_offset"])
+        self.gene = self.translation_table.iloc[-1, 1]
+        self.max = self.translation_table.iloc[:,5].dropna().max() + int(self.config.VARIANT_QUERY_PARAMETERS["5p_offset"])
+        self.min = self.translation_table.iloc[:,4].dropna().min() - int(self.config.VARIANT_QUERY_PARAMETERS["3p_offset"])
         if vcf:
             self.variants = vcf.get_range(self.chromosome, self.min, self.max)
         else:
@@ -73,10 +73,8 @@ class AbstractGene:
         """
         The gene contains variants for all samples in the VCF
         This function parses variants for a single sample. 
-
         Args:
             sample (str): sample ID
-
         Returns:
             dict: single sample variants from VCF
         """
@@ -92,7 +90,6 @@ class AbstractGene:
         """
         Get a deep copy of a translation table that can be modified
         for a single subject
-
         Returns:
             pd.DataFrame: deep copy of the associated translation table
         """
@@ -143,10 +140,8 @@ class AbstractGene:
     def get_type(self, vtype: str) -> str:
         """
         Simple helper function to assign a CNV type if a variant is not SID
-
         Args:
             vtype (str): SID or CNV
-
         Returns:
             str: CNV if CNV, else SID
         """
